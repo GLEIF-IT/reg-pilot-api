@@ -15,6 +15,7 @@ services:
       - VERIFIER_AUTHORIZATIONS=http://host.docker.internal:7676/authorizations/
       - VERIFIER_PRESENTATIONS=http://host.docker.internal:7676/presentations/
       - VERIFIER_REPORTS=http://host.docker.internal:7676/reports/
+      - VERIFIER_REQUESTS=http://host.docker.internal:7676/request/verify/
     healthcheck:
       test:
           - CMD
