@@ -1,12 +1,22 @@
 import falcon
 from falcon.testing import create_environ
-import os
-from regps.app import service
+import logging
 import pytest
-import subprocess
+from regps.app import service
+import sys
 import time
 import threading
 from wsgiref import simple_server
+
+# Create a logger object.
+logger = logging.getLogger(__name__)
+
+# Configure the logger to write messages to stdout.
+handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(handler)
+
+# Set the log level to include all messages.
+logger.setLevel(logging.DEBUG)
 
 @pytest.fixture(scope='session')
 def start_gunicorn():
@@ -22,7 +32,7 @@ def start_gunicorn():
     server_thread.join()
     
 def test_local(start_gunicorn):
-    print("Running test_local so that you can debug the server")
+    logger.info("Running test_local so that you can debug the server")
     while True:
         time.sleep(1)
 

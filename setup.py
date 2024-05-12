@@ -27,14 +27,14 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(
-    name='reg-pilot-server',
+    name='reg-pilot-api',
     version='0.0.2',  # also change in src/regps/__init__.py
     license='Apache Software License 2.0',
-    description='RegPS: Regulation Portal Service.',
+    description='RegPS: Regulation Portal Service API.',
     long_description="RegPS: A Regulation Portal Service to orchestate web app, vLEI validation, etc.",
     author='Lance Byrd',
     author_email='lance.byrd@rootsid.com',
-    url='https://github.com/gleif-it/reg-pilot-server',
+    url='https://github.com/gleif-it/reg-pilot-api',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],

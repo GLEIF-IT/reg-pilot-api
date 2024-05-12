@@ -28,7 +28,7 @@ def main():
 
 
     except Exception as ex:
-        print(f"ERR: {ex}")
+        logging.error(f"ERR: {ex}")
         return -1
 
 

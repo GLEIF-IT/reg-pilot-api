@@ -1,4 +1,4 @@
-# reg-poc-server
+# reg-pilot-api
 A service to manage regulator portal requests/responses that require authentication, document submission and validation. 
 
 ## Architecture
@@ -28,18 +28,16 @@ Requires a running [Redis](https://redis.io/) instance on the default port.
 
 ### Webapp
 The web app (UI front-end) uses Signify/KERIA for selecting identifiers and credentials:
-See: [reg-poc-webapp](https://github.com/GLEIF-IT/reg-poc-webapp)
+See: [reg-pilot-webapp](https://github.com/GLEIF-IT/reg-pilot-webapp)
 
 ### Verifier
 The verifier uses [keripy](https://github.com/WebOfTRust/keripy) for verifying the requets:
-See: [reg-poc-verifier](https://github.com/GLEIF-IT/reg-poc-verifier)
+See: [vlei-verifier](https://github.com/GLEIF-IT/vlei-verifier)
 
 ### Additional service
 * KERI Witness Network
-* vLEI server
+* vLEI Verifier
 * KERI Agent
-
-The deployment architecture is demonstrated in [reg-poc](https://github.com/GLEIF-IT/reg-poc)
 
 #### REST API
  You can run a test query using Swagger by going to:

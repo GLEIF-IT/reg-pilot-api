@@ -1,10 +1,10 @@
 services:
 
-  reg-server:
+  reg-pilot-api:
     build:
       context: .
-      dockerfile: ./images/server.dockerfile
-    image: 2byrds/reg-server:latest
+      dockerfile: ./images/reg-pilot-api.dockerfile
+    image: 2byrds/reg-pilot-api:latest
     ports:
       - 8000:8000
     # command: gunicorn regps.app.service:app -b 0.0.0.0:8000
@@ -55,7 +55,7 @@ services:
     image: alpine
     command: ['echo', 'Dependencies running']
     depends_on:
-        reg-server:
+        reg-pilot-api:
             condition: service_healthy
         # vlei-server:
         #     condition: service_healthy
