@@ -31,12 +31,14 @@ def start_gunicorn():
     server.shutdown()
     server_thread.join()
     
-def test_local(start_gunicorn):
+@pytest.mark.manual    
+def test_service_integration(start_gunicorn):
     logger.info("Running test_local so that you can debug the server")
     while True:
         time.sleep(1)
 
 #currently needs a pre-loaded vlei-verifier populated per signify-ts vlei-verifier test
+@pytest.mark.manual
 def test_ends():
     # AID and SAID should be the same as what is in credential.cesr for the ECR credential
     # see https://trustoverip.github.io/tswg-acdc-specification/#top-level-fields to understand the fields/values
