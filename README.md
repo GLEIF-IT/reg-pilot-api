@@ -24,8 +24,6 @@ docker-compose down
 docker-compose up
 ```
 
-Requires a running [Redis](https://redis.io/) instance on the default port. 
-
 ### Webapp
 The web app (UI front-end) uses Signify/KERIA for selecting identifiers and credentials:
 See: [reg-pilot-webapp](https://github.com/GLEIF-IT/reg-pilot-webapp)

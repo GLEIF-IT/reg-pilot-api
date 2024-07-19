@@ -29,9 +29,26 @@ logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
 def copyResponse(actual: falcon.Response, copyme: falcon.Response):
-    actual.status = str(copyme.status_code) + " " + copyme.reason
-    actual.data = json.dumps(copyme.json()).encode("utf-8")
-    actual.content_type = copyme.headers["Content-Type"]
+    if hasattr(copyme, 'status_code') and hasattr(copyme, 'reason'):
+        actual.status = str(copyme.status_code) + " " + copyme.reason
+    elif hasattr(copyme, 'status'):
+        actual.status = copyme.status
+    else:
+        logger.error('copyme has neither status_code nor status attribute')
+
+    if hasattr(copyme, 'json'):
+        actual.data = json.dumps(copyme.json()).encode("utf-8")
+    elif hasattr(copyme, 'data'):
+        actual.data = copyme.data
+    else:
+        logger.error('copyme does not have json attribute')
+
+    if hasattr(copyme, 'headers') and "Content-Type" in copyme.headers:
+        actual.content_type = copyme.headers["Content-Type"]
+    elif hasattr(copyme, 'content_type'):
+        actual.content_type = copyme.content_type
+    else:
+        logger.error('copyme does not have headers attribute or Content-Type header')
 
 def initStatusDb(aid):
     if aid not in uploadStatus:
@@ -47,15 +64,20 @@ class VerifySignedHeaders:
 
     DefaultFields = ["Signify-Resource", "@method", "@path", "Signify-Timestamp"]
 
-    def process_request(self, req: falcon.Request, resp: falcon.Response):
+    def process_request(self, req: falcon.Request, resp: falcon.Response, raid):
         logger.info(f"Processing signed header verification request {req}")
         aid, cig, ser = self.handle_headers(req)
-        res = verify_cig(aid, cig, ser)
-        logger.info(f"VerifySignedHeaders.on_post: response {res}")
+        if (aid == raid):
+            res = verify_cig(aid, cig, ser)
+            logger.info(f"VerifySignedHeaders.on_post: response {res}")
 
-        if res.status_code <= 400:
-            initStatusDb(aid)
-        return res
+            if res.status_code <= 400:
+                initStatusDb(aid)
+            return res
+        else:
+            resp.status = falcon.HTTP_401
+            resp.data = json.dumps(dict(msg=f"Header AID {aid} does not match request {raid}")).encode("utf-8")
+            return resp
 
     def handle_headers(self, req):
         logger.info(f"processing header req {req}")
@@ -207,7 +229,7 @@ class UploadTask:
     def on_post(self, req: falcon.Request, resp: falcon.Response, aid, dig):
         logger.info("UploadTask.on_post {}".format(req))
         try :
-            check_headers = self.verCig.process_request(req, resp)
+            check_headers = self.verCig.process_request(req, resp, aid)
             if check_headers.status_code >= 400:
                 logger.info(f"UploadTask.on_post: Invalid signature on headers or error was received")
                 return copyResponse(resp,check_headers)
@@ -217,43 +239,39 @@ class UploadTask:
                 f"UploadTask.on_post: request for {aid} {dig} {raw} {req.content_type}"
             )
             upload_resp = upload(aid, dig, req.content_type, raw)
+            
             if upload_resp.status_code >= 400:
                 logger.info(f"UploadTask.on_post: Invalid signature on report or error was received")
-                return copyResponse(resp,upload_resp)
             else:
                 logger.info(f"UploadTask.on_post: completed upload for {aid} {dig} with code {upload_resp.status_code}")
-                uploadStatus[f"{aid}"].append(upload_resp.json())
-                return copyResponse(resp,upload_resp)
+
+            uploadStatus[f"{aid}"].append(upload_resp.json())
+            copyResponse(resp,upload_resp)
+
+            return
             
         except Exception as e:
             logger.info(f"Upload.on_post: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps(
-                dict(msg="Upload request failed",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
             return
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, aid, dig):
         logger.info("UploadTask.on_get")
-        copyResponse(resp, self.verCig.process_request(req, resp))
+        copyResponse(resp, self.verCig.process_request(req, resp, aid))
         if resp:
             logger.info(f"UploadTask.on_post: Invalid signature on headers")
             return resp
         try:
             logger.info(f"UploadTask.on_get: sending aid {aid} for dig {dig}")
-            copyResponse(resp, check_upload(aid, dig))
+            curesp = check_upload(aid, dig)
+            copyResponse(resp, curesp)
             logger.info(f"UploadTask.on_get: received data {json.dumps(resp.data)}")
             return
         except Exception as e:
             logger.info(f"UploadTask.on_get: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps(
-                dict(msg="Login check request failed",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
             return
 
 class StatusTask:
@@ -264,7 +282,7 @@ class StatusTask:
     def on_get(self, req: falcon.Request, resp: falcon.Response, aid):
         logger.info(f"StatusTask.on_get request {req}")
         try :
-            check_headers = self.verCig.process_request(req, resp)
+            check_headers = self.verCig.process_request(req, resp, aid)
             if check_headers.status_code >= 400:
                 logger.info(f"StatusTask.on_get: Invalid signature on headers or error was received")
                 return copyResponse(resp,check_headers)
@@ -280,7 +298,7 @@ class StatusTask:
                 if len(responses) == 0:
                     logger.info(f"StatusTask.on_get: Empty upload status list for aid {aid}")
                     resp.status = falcon.HTTP_200
-                    resp.data = json.dumps([dict(msg="No uploads found")]).encode("utf-8")
+                    resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message="No Reports Uploaded")]).encode("utf-8")
                     return resp
                 else:
                     logger.info(f"StatusTask.on_get: received data {json.dumps(resp.data)}")
@@ -290,11 +308,7 @@ class StatusTask:
         except Exception as e:
             logger.info(f"Status.on_get: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps(
-                dict(msg="Status request failed",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
             return resp
 
 

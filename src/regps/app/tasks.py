@@ -1,3 +1,4 @@
+from time import sleep
 import falcon
 import json
 import logging
@@ -80,11 +81,24 @@ def upload(aid: str, dig: str, contype: str, report) -> falcon.Response:
     logger.info(f"upload report type {type(report)}")
     # first check to see if we've already uploaded
     cres = check_upload(aid, dig)
-    if cres.status_code == falcon.http_status_to_code(falcon.HTTP_ACCEPTED):
+    if cres.status_code == falcon.http_status_to_code(falcon.HTTP_OK):
         logger.info(f"upload already uploaded: {json.dumps(cres.json())}")
         return cres
     else:
         logger.info(f"upload posting to {reports_url}{aid}/{dig}")
-        pres = requests.post(f"{reports_url}{aid}/{dig}", headers={"Content-Type": contype}, data=report)
-        logger.info(f"post response {json.dumps(pres.json())}")
-        return pres
+        cres = requests.post(f"{reports_url}{aid}/{dig}", headers={"Content-Type": contype}, data=report)
+        logger.info(f"post response {json.dumps(cres.json())}")
+        if cres.status_code < falcon.http_status_to_code(falcon.HTTP_300):
+            cres = check_upload(aid, dig)
+            if cres.status_code != falcon.http_status_to_code(falcon.HTTP_OK):
+                logger.info(f"Checking upload status.... {json.dumps(cres.json())}")
+                for i in range(10):
+                    if cres == None or cres.status_code == falcon.http_status_to_code(falcon.HTTP_404):
+                        cres = check_upload(aid, dig)
+                        print(f"polling result for {aid} and {dig}: {cres.text}")
+                        sleep (1)
+                        i += 1
+                    else:
+                        break
+    logger.info(f"Checked upload result: {json.dumps(cres.json())}")
+    return cres
