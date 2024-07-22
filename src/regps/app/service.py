@@ -8,6 +8,8 @@ import logging
 import os
 from swagger_ui import api_doc
 import sys
+from falcon_swagger_ui import register_swaggerui_app
+
 
 ROUTE_PING = "/ping"
 ROUTE_LOGIN = "/login"
@@ -364,385 +366,45 @@ def getRequiredParam(body, name):
     return param
 
 
-def swagger_ui(app):
+def register_swagger_ui(app):
     vlei_contents = None
     with open("./data/credential.cesr", "r") as cfile:
         vlei_contents = cfile.read()
 
-    report_zip = None
-    with open("./data/report.zip", "rb") as rfile:
-        report_zip = rfile
+    # Register Swagger UI
+    swagger_ui_url = '/api/doc'  # URL to access Swagger UI
+    swagger_json_url = '/api/doc/swagger.json'  # URL to access Swagger JSON
 
-    config = {
-        "openapi": "3.0.1",
-        "info": {
-            "title": "Regulator portal service api",
-            "description": "Regulator web portal service api",
-            "version": "1.0.0",
-        },
-        "servers": [{"url": "http://127.0.0.1:8000", "description": "local server"}],
-        "tags": [{"name": "default", "description": "default tag"}],
-        "paths": {
-            "/ping": {
-                "get": {
-                    "tags": ["default"],
-                    "summary": "output pong.",
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/text": {
-                                    "schema": {"type": "object", "example": "Pong"}
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-            "/login": {
-                "post": {
-                    "tags": ["default"],
-                    "summary": "Given an AID and vLEI, returns information about the login",
-                    "requestBody": {
-                        "required": "true",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "aid": {
-                                            "type": "string",
-                                            "example": "EHYfRWfM6RxYbzyodJ6SwYytlmCCW2gw5V-FsoX5BgGx",
-                                        },
-                                        "said": {
-                                            "type": "string",
-                                            "example": "EH37Qxg6UJF_gboIFAlvqdOu7r6Tz7P7BrVAeyHo_WDL",
-                                        },
-                                        "vlei": {
-                                            "type": "string",
-                                            "example": f"{vlei_contents}",
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "example": {
-                                            "aid": "EHYfRWfM6RxYbzyodJ6SwYytlmCCW2gw5V-FsoX5BgGx",
-                                            "said": "EH37Qxg6UJF_gboIFAlvqdOu7r6Tz7P7BrVAeyHo_WDL",
-                                        },
-                                    }
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-            "/checklogin/{aid}": {
-                "get": {
-                    "tags": ["default"],
-                    "summary": "Given an AID returns information about the login",
-                    "parameters": [
-                        {
-                            "in": "path",
-                            "name": "aid",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "minimum": 1,
-                                "example": "EHYfRWfM6RxYbzyodJ6SwYytlmCCW2gw5V-FsoX5BgGx",
-                            },
-                            "description": "The AID",
-                        }
-                    ],
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "example": {
-                                            "aid": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                                            "said": "EBdaAMrpqfB0PlTgI3juS8UFgIPAXC1NZd1jSk6acenf",
-                                        },
-                                    }
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-            "/upload/{aid}/{dig}": {
-                "post": {
-                    "tags": ["default"],
-                    "summary": "Given an AID and DIG, returns information about the upload",
-                    "parameters": [
-                        {
-                            "in": "path",
-                            "name": "aid",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "minimum": 1,
-                                "example": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                            },
-                            "description": "The AID",
-                        },
-                        {
-                            "in": "path",
-                            "name": "dig",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "minimum": 1,
-                                "example": "EC7b6S50sY26HTj6AtQiWMDMucsBxMvThkmrKUBXVMf0",
-                            },
-                            "description": "The digest of the upload",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signature",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'indexed="?0";signify="0BCLs_wv3X6YFoFhB7acH_BePXS7zjBJPvuChdr01cM60Igf_sxYsah9sLHP-pMSYFs1Y6zYUo58HVG8tRd4X1IC"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signature-Input",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'signify=("@method" "@path" "signify-resource" "signify-timestamp");created=1690462814;keyid="BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9";alg="ed25519"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signify-Resource",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                            },
-                            "description": "The aid that siged the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "signify-timestamp",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "2023-07-27T13:00:14.802000+00:00",
-                            },
-                            "description": "The timestamp of the data",
-                        },
-                    ],
-                    "requestBody": {
-                        "required": "true",
-                        "content": {
-                            "multipart/form-data": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "upload": {
-                                            "type": "string",
-                                            "format": "binary",
-                                            "example": f"{report_zip}",
-                                        }
-                                    },
-                                }
-                            }
-                        },
-                    },
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "example": {
-                                            "submitter": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                                            "filename": "test_ifgroup2023.zip",
-                                            "status": "verified",
-                                            "contentType": "application/zip",
-                                            "size": 4467,
-                                            "message": "All 6 files in report package have been signed by submitter (EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk).",
-                                        },
-                                    }
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-            # "/checkupload/{aid}/{dig}":{"get":{"tags":["default"],
-            #                     "summary":"Given an AID and DIG returns information about the upload status",
-            #                     "parameters":[{"in":"path","name":"aid","required":"true","schema":{"type":"string","minimum":1,"example":"EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk"},"description":"The AID"},
-            #                                   {"in":"path","name":"dig","required":"true","schema":{"type":"string","minimum":1,"example":"EAPHGLJL1s6N4w1Hje5po6JPHu47R9-UoJqLweAci2LV"},"description":"The digest of the upload"}],
-            #                     "responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","example":{
-            #                                             "submitter": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-            #                                             "filename": "DUMMYLEI123456789012.IND_FR_IF010200_IFTM_2022-12-31_20220222134211000.zip",
-            #                                             "status": "failed",
-            #                                             "contentType": "application/zip",
-            #                                             "size": 3390,
-            #                                             "message": "No signatures found in manifest file"
-            #                     }}}}}},
-            #                     }},
-            "/status/{aid}": {
-                "get": {
-                    "tags": ["default"],
-                    "summary": "Given an AID returns information about the upload status",
-                    "parameters": [
-                        {
-                            "in": "header",
-                            "name": "Signature",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'indexed="?0";signify="0BAbJnlOwYCgQ-1SExPKoPR8AyF2luTrP207oFRSOqKNwpYIviOgA-Fp4Z11At2f3NWBwUbQRWEB8Tu3es1l_QUI"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signature-Input",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'signify=("@method" "@path" "signify-resource" "signify-timestamp");created=1690386592;keyid="BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9";alg="ed25519"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signify-Resource",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                            },
-                            "description": "The aid that siged the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "signify-timestamp",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "2023-07-26T15:49:52.571000+00:00",
-                            },
-                            "description": "The timestamp of the data",
-                        },
-                        {
-                            "in": "path",
-                            "name": "aid",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "minimum": 1,
-                                "example": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                            },
-                            "description": "The AID",
-                        },
-                    ],
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "example": {
-                                            "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk": [
-                                                '{"submitter": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk", "filename": "test_MetaInfReportJson_noSigs.zip", "status": "failed", "contentType": "application/zip", "size": 3059, "message": "5 files from report package not signed {\'parameters.csv\', \'FilingIndicators.csv\', \'report.json\', \'i_10.01.csv\', \'i_10.02.csv\'}, []"}',
-                                                '{"submitter": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk", "filename": "test_ifclass3.zip", "status": "verified", "contentType": "application/zip", "size": 5662, "message": "All 9 files in report package have been signed by submitter (EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk)."}',
-                                                '{"submitter": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk", "filename": "test_ifgroup2023.zip", "status": "verified", "contentType": "application/zip", "size": 4467, "message": "All 6 files in report package have been signed by submitter (EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk)."}',
-                                            ]
-                                        },
-                                    }
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-            "/verify/header": {
-                "get": {
-                    "tags": ["default"],
-                    "summary": "returns if the headers are properly signed",
-                    "parameters": [
-                        {
-                            "in": "header",
-                            "name": "Signature",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'indexed="?0";signify="0BB86jS2w9PKL1t-5hZIxgF9-vMNz4DsoASJR_f-u8FvnywdvosPOqbXUo97LuS-pYH_K_BPpfA2Y0XsGb2pSBoL"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signature-Input",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": 'signify=("@method" "@path" "signify-resource" "signify-timestamp");created=1690922901;keyid="BPmhSfdhCPxr3EqjxzEtF8TVy0YX7ATo0Uc8oo2cnmY9";alg="ed25519"',
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signify-Resource",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "EBcIURLpxmVwahksgrsGW6_dUw0zBhyEHYFk17eWrZfk",
-                            },
-                            "description": "The signature of the data",
-                        },
-                        {
-                            "in": "header",
-                            "name": "Signify-Timestamp",
-                            "required": "true",
-                            "schema": {
-                                "type": "string",
-                                "example": "2023-08-01T20:48:21.885000+00:00",
-                            },
-                            "description": "The signature of the data",
-                        },
-                    ],
-                    "responses": {
-                        "200": {
-                            "description": "OK",
-                            "content": {
-                                "application/json": {
-                                    "schema": {"type": "object", "example": {}}
-                                }
-                            },
-                        }
-                    },
-                }
-            },
-        },
-    }
-
-    doc = api_doc(
-        app, config=config, url_prefix="/api/doc", title="API doc", editor=True
+    register_swaggerui_app(
+        app,
+        swagger_ui_url,
+        swagger_json_url,
+        page_title="API doc",
+        config={
+            "docExpansion": "list",
+            'app_name': "Regulator portal service api"
+        }
     )
-    return doc
+    with open('./src/swagger.json', 'r') as f:
+        swagger_spec_template = json.load(f)
+
+    class SwaggerSpecResource:
+        def on_get(self, req, resp):
+            # Copy the template to modify
+            swagger_spec = swagger_spec_template.copy()
+
+            # Set the server URL dynamically
+            swagger_spec['servers'] = [
+                {
+                    "url": f"{req.scheme}://{req.host}:{req.port}",
+                    "description": "API server"
+                }
+            ]
+            swagger_spec['paths']['/login']['post']['requestBody']['content']['application/json']['schema']['properties']['vlei']['example'] = vlei_contents
+
+            resp.media = swagger_spec
+
+    app.add_route(swagger_json_url, SwaggerSpecResource())
 
 
 def falcon_app():
@@ -777,8 +439,7 @@ def falcon_app():
     app.add_route(f"{ROUTE_CHECK_UPLOAD}"+"/{aid}/{dig}", UploadTask(verCig))
     app.add_route(f"{ROUTE_STATUS}"+"/{aid}", StatusTask(verCig))
 
-    swagger_ui(app)
-
+    register_swagger_ui(app)
     return app
 
 
