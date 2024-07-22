@@ -386,7 +386,8 @@ def register_swagger_ui(app):
         }
     )
     with open('./src/swagger.json', 'r') as f:
-        swagger_spec_template = json.load(f)
+        template_str = f.read() % vlei_contents.replace("\"", "'")
+        swagger_spec_template = json.loads(template_str)
 
     class SwaggerSpecResource:
         def on_get(self, req, resp):
@@ -400,7 +401,6 @@ def register_swagger_ui(app):
                     "description": "API server"
                 }
             ]
-            swagger_spec['paths']['/login']['post']['requestBody']['content']['application/json']['schema']['properties']['vlei']['example'] = vlei_contents
 
             resp.media = swagger_spec
 
