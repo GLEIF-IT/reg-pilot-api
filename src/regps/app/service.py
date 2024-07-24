@@ -10,7 +10,6 @@ from swagger_ui import api_doc
 import sys
 from falcon_swagger_ui import register_swaggerui_app
 
-
 ROUTE_PING = "/ping"
 ROUTE_LOGIN = "/login"
 ROUTE_CHECK_LOGIN = "/checklogin"
@@ -29,6 +28,7 @@ logger.addHandler(handler)
 
 # Set the log level to include all messages.
 logger.setLevel(logging.DEBUG)
+
 
 def copyResponse(actual: falcon.Response, copyme: falcon.Response):
     if hasattr(copyme, 'status_code') and hasattr(copyme, 'reason'):
@@ -52,6 +52,7 @@ def copyResponse(actual: falcon.Response, copyme: falcon.Response):
     else:
         logger.error('copyme does not have headers attribute or Content-Type header')
 
+
 def initStatusDb(aid):
     if aid not in uploadStatus:
         logger.info("Initialized status db for {}".format(aid))
@@ -63,7 +64,6 @@ def initStatusDb(aid):
 
 # the signature is a keri cigar objects
 class VerifySignedHeaders:
-
     DefaultFields = ["Signify-Resource", "@method", "@path", "Signify-Timestamp"]
 
     def process_request(self, req: falcon.Request, resp: falcon.Response, raid):
@@ -166,27 +166,27 @@ class LoginTask:
                 resp.status = falcon.HTTP_BAD_REQUEST
                 resp.data = json.dumps(
                     dict(msg=f"invalid content type={req.content_type} for VC presentation, should be application/json",
-                        exception_type=type(e).__name__,
-                        exception_message=str(e)
-                    )).encode("utf-8")
+                         exception_type=type(e).__name__,
+                         exception_message=str(e)
+                         )).encode("utf-8")
                 return
 
             data = req.media
             if data.get("said") is None:
                 resp.status = falcon.HTTP_BAD_REQUEST
                 resp.data = json.dumps(
-                dict(msg=f"requests with a said is required",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+                    dict(msg=f"requests with a said is required",
+                         exception_type=type(e).__name__,
+                         exception_message=str(e)
+                         )).encode("utf-8")
                 return
             if data.get("vlei") is None:
                 resp.status = falcon.HTTP_BAD_REQUEST
                 resp.data = json.dumps(
-                dict(msg=f"requests with vlei ecr cesr is required",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+                    dict(msg=f"requests with vlei ecr cesr is required",
+                         exception_type=type(e).__name__,
+                         exception_message=str(e)
+                         )).encode("utf-8")
                 return
 
             logger.info(f"LoginTask.on_post: sending login cred {str(data)[:50]}...")
@@ -200,9 +200,9 @@ class LoginTask:
             resp.status = falcon.HTTP_500
             resp.data = json.dumps(
                 dict(msg="Login request failed",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+                     exception_type=type(e).__name__,
+                     exception_message=str(e)
+                     )).encode("utf-8")
             return
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, aid):
@@ -217,9 +217,9 @@ class LoginTask:
             resp.status = falcon.HTTP_500
             resp.data = json.dumps(
                 dict(msg="Login check request failed",
-                    exception_type=type(e).__name__,
-                    exception_message=str(e)
-                )).encode("utf-8")
+                     exception_type=type(e).__name__,
+                     exception_message=str(e)
+                     )).encode("utf-8")
             return
 
 
@@ -230,32 +230,34 @@ class UploadTask:
 
     def on_post(self, req: falcon.Request, resp: falcon.Response, aid, dig):
         logger.info("UploadTask.on_post {}".format(req))
-        try :
+        try:
             check_headers = self.verCig.process_request(req, resp, aid)
             if check_headers.status_code >= 400:
                 logger.info(f"UploadTask.on_post: Invalid signature on headers or error was received")
-                return copyResponse(resp,check_headers)
+                return copyResponse(resp, check_headers)
 
             raw = req.bounded_stream.read()
             logger.info(
                 f"UploadTask.on_post: request for {aid} {dig} {raw} {req.content_type}"
             )
             upload_resp = upload(aid, dig, req.content_type, raw)
-            
+
             if upload_resp.status_code >= 400:
                 logger.info(f"UploadTask.on_post: Invalid signature on report or error was received")
             else:
                 logger.info(f"UploadTask.on_post: completed upload for {aid} {dig} with code {upload_resp.status_code}")
 
             uploadStatus[f"{aid}"].append(upload_resp.json())
-            copyResponse(resp,upload_resp)
+            copyResponse(resp, upload_resp)
 
             return
-            
+
         except Exception as e:
             logger.info(f"Upload.on_post: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
+            resp.data = json.dumps(
+                [dict(submitter=f"{aid}", filename="", status="", contentType="", size=0, message=str(e))]).encode(
+                "utf-8")
             return
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, aid, dig):
@@ -273,8 +275,11 @@ class UploadTask:
         except Exception as e:
             logger.info(f"UploadTask.on_get: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
+            resp.data = json.dumps(
+                [dict(submitter=f"{aid}", filename="", status="", contentType="", size=0, message=str(e))]).encode(
+                "utf-8")
             return
+
 
 class StatusTask:
 
@@ -283,12 +288,12 @@ class StatusTask:
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, aid):
         logger.info(f"StatusTask.on_get request {req}")
-        try :
+        try:
             check_headers = self.verCig.process_request(req, resp, aid)
             if check_headers.status_code >= 400:
                 logger.info(f"StatusTask.on_get: Invalid signature on headers or error was received")
-                return copyResponse(resp,check_headers)
-            
+                return copyResponse(resp, check_headers)
+
             logger.info(f"StatusTask.on_get: aid {aid}")
             if aid not in uploadStatus:
                 logger.info(f"StatusTask.on_post: Cannot find status for {aid}")
@@ -300,7 +305,8 @@ class StatusTask:
                 if len(responses) == 0:
                     logger.info(f"StatusTask.on_get: Empty upload status list for aid {aid}")
                     resp.status = falcon.HTTP_200
-                    resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message="No Reports Uploaded")]).encode("utf-8")
+                    resp.data = json.dumps([dict(submitter=f"{aid}", filename="", status="", contentType="", size=0,
+                                                 message="No Reports Uploaded")]).encode("utf-8")
                     return resp
                 else:
                     logger.info(f"StatusTask.on_get: received data {json.dumps(resp.data)}")
@@ -310,7 +316,9 @@ class StatusTask:
         except Exception as e:
             logger.info(f"Status.on_get: Exception: {e}")
             resp.status = falcon.HTTP_500
-            resp.data = json.dumps([dict(submitter=f"{aid}",filename="",status="",contentType="",size=0,message=str(e))]).encode("utf-8")
+            resp.data = json.dumps(
+                [dict(submitter=f"{aid}", filename="", status="", contentType="", size=0, message=str(e))]).encode(
+                "utf-8")
             return resp
 
 
@@ -434,10 +442,10 @@ def falcon_app():
 
     app.add_route(ROUTE_PING, PingResource())
     app.add_route(ROUTE_LOGIN, LoginTask())
-    app.add_route(f"{ROUTE_CHECK_LOGIN}"+"/{aid}", LoginTask())
-    app.add_route(f"{ROUTE_UPLOAD}"+"/{aid}/{dig}", UploadTask(verCig))
-    app.add_route(f"{ROUTE_CHECK_UPLOAD}"+"/{aid}/{dig}", UploadTask(verCig))
-    app.add_route(f"{ROUTE_STATUS}"+"/{aid}", StatusTask(verCig))
+    app.add_route(f"{ROUTE_CHECK_LOGIN}" + "/{aid}", LoginTask())
+    app.add_route(f"{ROUTE_UPLOAD}" + "/{aid}/{dig}", UploadTask(verCig))
+    app.add_route(f"{ROUTE_CHECK_UPLOAD}" + "/{aid}/{dig}", UploadTask(verCig))
+    app.add_route(f"{ROUTE_STATUS}" + "/{aid}", StatusTask(verCig))
 
     register_swagger_ui(app)
     return app

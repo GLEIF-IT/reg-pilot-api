@@ -23,61 +23,68 @@ request_url = "http://localhost:7676/request/verify/"
 
 VERIFIER_AUTHORIZATIONS = os.environ.get('VERIFIER_AUTHORIZATIONS')
 if VERIFIER_AUTHORIZATIONS is None:
-        logger.info(f"VERIFIER_AUTHORIZATIONS is not set. Using default {auths_url}")
+    logger.info(f"VERIFIER_AUTHORIZATIONS is not set. Using default {auths_url}")
 else:
-        logger.info(f"VERIFIER_AUTHORIZATIONS is set. Using {VERIFIER_AUTHORIZATIONS}")
-        auths_url = VERIFIER_AUTHORIZATIONS
-        
+    logger.info(f"VERIFIER_AUTHORIZATIONS is set. Using {VERIFIER_AUTHORIZATIONS}")
+    auths_url = VERIFIER_AUTHORIZATIONS
+
 VERIFIER_PRESENTATIONS = os.environ.get('VERIFIER_PRESENTATIONS')
 if VERIFIER_PRESENTATIONS is None:
-        logger.info(f"VERIFIER_PRESENTATIONS is not set. Using default {presentations_url}")
+    logger.info(f"VERIFIER_PRESENTATIONS is not set. Using default {presentations_url}")
 else:
-        logger.info(f"VERIFIER_PRESENTATIONS is set. Using {VERIFIER_PRESENTATIONS}")
-        presentations_url = VERIFIER_PRESENTATIONS
+    logger.info(f"VERIFIER_PRESENTATIONS is set. Using {VERIFIER_PRESENTATIONS}")
+    presentations_url = VERIFIER_PRESENTATIONS
 
 VERIFIER_REPORTS = os.environ.get('VERIFIER_REPORTS')
 if VERIFIER_REPORTS is None:
-        logger.info(f"VERIFIER_REPORTS is not set. Using default {reports_url}")
+    logger.info(f"VERIFIER_REPORTS is not set. Using default {reports_url}")
 else:
-        logger.info(f"VERIFIER_REPORTS is set. Using {VERIFIER_REPORTS}")
-        reports_url = VERIFIER_REPORTS
-        
+    logger.info(f"VERIFIER_REPORTS is set. Using {VERIFIER_REPORTS}")
+    reports_url = VERIFIER_REPORTS
+
 VERIFIER_REQUESTS = os.environ.get('VERIFIER_REQUESTS')
 if VERIFIER_REQUESTS is None:
-        logger.info(f"VERIFIER_REQUESTS is not set. Using default {request_url}")
+    logger.info(f"VERIFIER_REQUESTS is not set. Using default {request_url}")
 else:
-        logger.info(f"VERIFIER_REQUESTS is set. Using {VERIFIER_REQUESTS}")
-        request_url = VERIFIER_REQUESTS
+    logger.info(f"VERIFIER_REQUESTS is set. Using {VERIFIER_REQUESTS}")
+    request_url = VERIFIER_REQUESTS
 
-def check_login(aid: str) -> falcon.Response:
+
+def check_login(aid: str):
     logger.info(f"checking login: {aid}")
     logger.info(f"getting from {auths_url}{aid}")
     res = requests.get(f"{auths_url}{aid}", headers={"Content-Type": "application/json"})
     logger.info(f"login status: {json.dumps(res.json())}")
     return res
 
-def verify_vlei(said: str, vlei: str) -> falcon.Response:
+
+def verify_vlei(said: str, vlei: str):
     logger.info(f"Verify vlei task started {said} {vlei[:50]}")
     logger.info(f"presenting vlei ecr to url {presentations_url}{said}")
     res = requests.put(f"{presentations_url}{said}", headers={"Content-Type": "application/json+cesr"}, data=vlei)
     logger.info(f"verify vlei task response {json.dumps(res.json())}")
-    return res
-        
-def verify_cig(aid,cig,ser) -> falcon.Response:
-    logger.info("Verify header sig started aid = {}, cig = {}, ser = {}....".format(aid,cig,ser))
-    logger.info("posting to {}".format(request_url+f"{aid}"))
-    res = requests.post(request_url+aid, params={"sig": cig,"data": ser})
+    if res.status_code == 400:
+        raise Exception(res.text, res.status_code)
+    return res.json()
+
+
+def verify_cig(aid, cig, ser):
+    logger.info("Verify header sig started aid = {}, cig = {}, ser = {}....".format(aid, cig, ser))
+    logger.info("posting to {}".format(request_url + f"{aid}"))
+    res = requests.post(request_url + aid, params={"sig": cig, "data": ser})
     logger.info(f"Verify sig response {json.dumps(res.json())}")
     return res
 
-def check_upload(aid: str, dig: str) -> falcon.Response:
+
+def check_upload(aid: str, dig: str):
     logger.info(f"checking upload: aid {aid} and dig {dig}")
     logger.info(f"getting from {reports_url}{aid}/{dig}")
     res = requests.get(f"{reports_url}{aid}/{dig}", headers={"Content-Type": "application/json"})
     logger.info(f"upload status: {json.dumps(res.json())}")
     return res
 
-def upload(aid: str, dig: str, contype: str, report) -> falcon.Response:
+
+def upload(aid: str, dig: str, contype: str, report):
     logger.info(f"upload report type {type(report)}")
     # first check to see if we've already uploaded
     cres = check_upload(aid, dig)
@@ -96,7 +103,7 @@ def upload(aid: str, dig: str, contype: str, report) -> falcon.Response:
                     if cres == None or cres.status_code == falcon.http_status_to_code(falcon.HTTP_404):
                         cres = check_upload(aid, dig)
                         print(f"polling result for {aid} and {dig}: {cres.text}")
-                        sleep (1)
+                        sleep(1)
                         i += 1
                     else:
                         break
