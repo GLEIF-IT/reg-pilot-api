@@ -2,7 +2,7 @@ import os
 from collections import defaultdict
 
 from regps.app.api.signed_headers_verifier import logger, VerifySignedHeaders
-from fastapi import FastAPI, Header, HTTPException, Request, File, UploadFile, Path
+from fastapi import FastAPI, Header, HTTPException, Request, File, UploadFile, Path, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from regps.app.api.utils.pydantic_models import LoginRequest, LoginResponse, CheckLoginResponse, CheckUploadResponse, \
@@ -28,7 +28,7 @@ async def ping():
 
 
 @app.post("/login", response_model=LoginResponse)
-async def login(data: LoginRequest):
+async def login(response: Response, data: LoginRequest):
     """
     Given an AID and vLEI, returns information about the login
     """
@@ -38,14 +38,15 @@ async def login(data: LoginRequest):
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException as e:
         logger.error(f"Login: Exception: {e}")
-        raise e
+        response.status_code = e.status_code
+        return e.detail
     except Exception as e:
         logger.error(f"Login: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/checklogin/{aid}", response_model=CheckLoginResponse)
-async def check_login_route(aid: str = Path(example=check_login_examples["request"]["aid"])):
+async def check_login_route(response: Response, aid: str = Path(example=check_login_examples["request"]["aid"])):
     """
     Given an AID returns information about the login
     """
@@ -55,14 +56,15 @@ async def check_login_route(aid: str = Path(example=check_login_examples["reques
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException as e:
         logger.error(f"CheckLogin: Exception: {e}")
-        raise e
+        response.status_code = e.status_code
+        return e.detail
     except Exception as e:
         logger.error(f"CheckLogin: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/upload/{aid}/{dig}", response_model=UploadResponse)
-async def upload_route(request: Request, aid: str = Path(example=upload_examples["request"]["aid"]),
+async def upload_route(request: Request, response: Response, aid: str = Path(example=upload_examples["request"]["aid"]),
                        dig: str = Path(example=upload_examples["request"]["dig"]), upload: UploadFile = File(...),
                        signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                        signature_input: str = Header(example=upload_examples["request"]["headers"]["signature_input"]),
@@ -90,14 +92,15 @@ async def upload_route(request: Request, aid: str = Path(example=upload_examples
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException or VerifySignedHeadersException as e:
         logger.error(f"Upload: Exception: {e}")
-        raise e
+        response.status_code = e.status_code
+        return e.detail
     except Exception as e:
         logger.error(f"Upload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/checkupload/{aid}/{dig}")
-async def check_upload_route(request: Request, aid: str = Path(example=check_upload_examples["request"]["aid"]),
+async def check_upload_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
                              dig: str = Path(example=check_upload_examples["request"]["dig"]),
                              signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                              signature_input: str = Header(
@@ -116,14 +119,15 @@ async def check_upload_route(request: Request, aid: str = Path(example=check_upl
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException as e:
         logger.error(f"CheckUpload: Exception: {e}")
-        raise e
+        response.status_code = e.status_code
+        return e.detail
     except Exception as e:
         logger.error(f"CheckUpload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/status/{aid}")
-async def check_upload_route(request: Request, aid: str = Path(example=check_upload_examples["request"]["aid"]),
+async def check_upload_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
                              signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                              signature_input: str = Header(
                                  example=upload_examples["request"]["headers"]["signature_input"]),
@@ -131,6 +135,7 @@ async def check_upload_route(request: Request, aid: str = Path(example=check_upl
                                  example=upload_examples["request"]["headers"]["signify_resource"]),
                              signify_timestamp: str = Header(
                                  example=upload_examples["request"]["headers"]["signify_timestamp"])
+
                              ):
     """
     Check upload status by aid.
@@ -141,7 +146,8 @@ async def check_upload_route(request: Request, aid: str = Path(example=check_upl
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException as e:
         logger.error(f"CheckUpload: Exception: {e}")
-        raise e
+        response.status_code = e.status_code
+        return e.detail
     except Exception as e:
         logger.error(f"CheckUpload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
