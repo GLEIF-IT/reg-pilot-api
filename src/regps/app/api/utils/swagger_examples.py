@@ -30,7 +30,7 @@ upload_examples = {
             "signature_input":
                 'signify=("@method" "@path" "signify-resource" "signify-timestamp");created=1714854033;keyid="BPoZo2b3r--lPBpURvEDyjyDkS65xBEpmpQhHQvrwlBE";alg="ed25519"',
             "signify_resource": "EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x",
-            "signify_timestamp": "2024-05-04T20:20:33.730000+00:00"
+            "signify_timestamp": "2023-07-27T13:00:14.802000+00:00"
         }
     },
     "response": {

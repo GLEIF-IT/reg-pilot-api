@@ -52,7 +52,7 @@ class VerifySignedHeaders:
         inputs = [i for i in inputs if i.name == "signify"]
 
         if not inputs:
-            return False
+            raise VerifySignedHeadersException(json.dumps({"msg": f"Incorrect Headers"}), 401)
 
         for inputage in inputs:
             items = []

@@ -11,7 +11,7 @@ from regps.app.api.controllers import APIController
 from regps.app.api.utils.swagger_examples import login_examples, check_login_examples, upload_examples, \
     check_upload_examples
 
-app = FastAPI(title="Regulator portal service api", description="Regulator web portal service api")
+app = FastAPI(title="Regulator portal service api", description="Regulator web portal service api", version="1.0.0")
 
 api_controller = APIController()
 verify_signed_headers = VerifySignedHeaders(api_controller)
