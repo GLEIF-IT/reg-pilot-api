@@ -145,11 +145,11 @@ async def status_route(request: Request, response: Response, aid: str = Path(exa
         resp = reports.get(aid, [])
         return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
-        logger.error(f"CheckUpload: Exception: {e}")
+        logger.error(f"Status: Exception: {e}")
         response.status_code = e.status_code
         return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
-        logger.error(f"CheckUpload: Exception: {e}")
+        logger.error(f"Status: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
