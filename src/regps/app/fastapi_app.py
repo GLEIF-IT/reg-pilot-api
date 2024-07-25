@@ -143,7 +143,7 @@ async def status_route(request: Request, response: Response, aid: str = Path(exa
     try:
         verify_signed_headers.process_request(request, aid)
         resp = reports.get(aid, [])
-        return JSONResponse(status_code=200, content=resp)
+        return JSONResponse(status_code=202, content=resp)
     except VerifierServiceException as e:
         logger.error(f"Status: Exception: {e}")
         response.status_code = e.status_code

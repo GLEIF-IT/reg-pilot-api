@@ -21,7 +21,7 @@ class APIController:
 
     def verify_cig(self, aid, cig, ser):
         verifier_response = self.verifier_adapter.verify_cig_request(aid, cig, ser)
-        if verifier_response.status_code != 202 or verifier_response.status_code != 200:
+        if verifier_response.status_code != 202:
             raise VerifierServiceException(verifier_response.json(), verifier_response.status_code)
         return verifier_response.json()
 
