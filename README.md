@@ -14,7 +14,7 @@ After you have built the project locally (ex python -m pip install -e .)
 In your terminal from the root project dir:
 
 ``` 
-gunicorn regps.app.service:app
+python src/regps/app/fastapi_app.py 
 ```
 
 #### Running in Docker:
@@ -40,6 +40,6 @@ See: [vlei-verifier](https://github.com/GLEIF-IT/vlei-verifier)
 #### REST API
  You can run a test query using Swagger by going to:
  ```
- http://127.0.0.1:8000/api/doc#
+ http://127.0.0.1:8000/docs
  ```
 
