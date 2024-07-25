@@ -127,7 +127,7 @@ async def check_upload_route(request: Request, response: Response, aid: str = Pa
 
 
 @app.get("/status/{aid}")
-async def check_upload_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
+async def status_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
                              signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                              signature_input: str = Header(
                                  example=upload_examples["request"]["headers"]["signature_input"]),
