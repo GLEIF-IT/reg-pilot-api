@@ -34,12 +34,12 @@ async def login(response: Response, data: LoginRequest):
     """
     try:
         logger.info(f"Login: sending login cred {str(data)[:50]}...")
-        response = api_controller.login(data.said, data.vlei)
-        return JSONResponse(status_code=200, content=response)
+        resp = api_controller.login(data.said, data.vlei)
+        return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
         logger.error(f"Login: Exception: {e}")
         response.status_code = e.status_code
-        return e.detail
+        return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
         logger.error(f"Login: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -52,12 +52,12 @@ async def check_login_route(response: Response, aid: str = Path(example=check_lo
     """
     try:
         logger.info(f"CheckLogin: sending aid {aid}")
-        response = api_controller.check_login(aid)
-        return JSONResponse(status_code=200, content=response)
+        resp = api_controller.check_login(aid)
+        return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
         logger.error(f"CheckLogin: Exception: {e}")
         response.status_code = e.status_code
-        return e.detail
+        return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
         logger.error(f"CheckLogin: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -82,18 +82,18 @@ async def upload_route(request: Request, response: Response, aid: str = Path(exa
         logger.info(
             f"Upload: request for {aid} {dig} {raw} {request.headers.get('Content-Type')}"
         )
-        response = api_controller.upload(aid, dig, request.headers.get('Content-Type'), raw)
+        resp = api_controller.upload(aid, dig, request.headers.get('Content-Type'), raw)
 
         if response.status_code >= 400:
             logger.info(f"Upload: Invalid signature on report or error was received")
         else:
-            logger.info(f"Upload: completed upload for {aid} {dig} with code {response.status_code}")
-        reports[aid].append(response)
-        return JSONResponse(status_code=200, content=response)
+            logger.info(f"Upload: completed upload for {aid} {dig} with code {resp.status_code}")
+        reports[aid].append(resp)
+        return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException or VerifySignedHeadersException as e:
         logger.error(f"Upload: Exception: {e}")
         response.status_code = e.status_code
-        return e.detail
+        return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
         logger.error(f"Upload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -115,12 +115,12 @@ async def check_upload_route(request: Request, response: Response, aid: str = Pa
     """
     try:
         verify_signed_headers.process_request(request, aid)
-        response = api_controller.check_upload(aid, dig)
-        return JSONResponse(status_code=200, content=response)
+        resp = api_controller.check_upload(aid, dig)
+        return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
         logger.error(f"CheckUpload: Exception: {e}")
         response.status_code = e.status_code
-        return e.detail
+        return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
         logger.error(f"CheckUpload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -142,12 +142,12 @@ async def check_upload_route(request: Request, response: Response, aid: str = Pa
     """
     try:
         verify_signed_headers.process_request(request, aid)
-        response = reports.get(aid, [])
-        return JSONResponse(status_code=200, content=response)
+        resp = reports.get(aid, [])
+        return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
         logger.error(f"CheckUpload: Exception: {e}")
         response.status_code = e.status_code
-        return e.detail
+        return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
         logger.error(f"CheckUpload: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
