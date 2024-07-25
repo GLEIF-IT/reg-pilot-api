@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 from regps.app.api.signed_headers_verifier import logger, VerifySignedHeaders
 from fastapi import FastAPI, Header, HTTPException, Request, File, UploadFile, Path
@@ -15,6 +16,7 @@ app = FastAPI(title="Regulator portal service api", description="Regulator web p
 
 api_controller = APIController()
 verify_signed_headers = VerifySignedHeaders(api_controller)
+reports = defaultdict(list)
 
 
 @app.get("/ping")
@@ -84,7 +86,7 @@ async def upload_route(request: Request, aid: str = Path(example=upload_examples
             logger.info(f"Upload: Invalid signature on report or error was received")
         else:
             logger.info(f"Upload: completed upload for {aid} {dig} with code {response.status_code}")
-
+        reports[aid].append(response)
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException or VerifySignedHeadersException as e:
         logger.error(f"Upload: Exception: {e}")
@@ -111,6 +113,31 @@ async def check_upload_route(request: Request, aid: str = Path(example=check_upl
     try:
         verify_signed_headers.process_request(request, aid)
         response = api_controller.check_upload(aid, dig)
+        return JSONResponse(status_code=200, content=response)
+    except VerifierServiceException as e:
+        logger.error(f"CheckUpload: Exception: {e}")
+        raise e
+    except Exception as e:
+        logger.error(f"CheckUpload: Exception: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/status/{aid}")
+async def check_upload_route(request: Request, aid: str = Path(example=check_upload_examples["request"]["aid"]),
+                             signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
+                             signature_input: str = Header(
+                                 example=upload_examples["request"]["headers"]["signature_input"]),
+                             signify_resource: str = Header(
+                                 example=upload_examples["request"]["headers"]["signify_resource"]),
+                             signify_timestamp: str = Header(
+                                 example=upload_examples["request"]["headers"]["signify_timestamp"])
+                             ):
+    """
+    Check upload status by aid.
+    """
+    try:
+        verify_signed_headers.process_request(request, aid)
+        response = reports.get(aid, [])
         return JSONResponse(status_code=200, content=response)
     except VerifierServiceException as e:
         logger.error(f"CheckUpload: Exception: {e}")
