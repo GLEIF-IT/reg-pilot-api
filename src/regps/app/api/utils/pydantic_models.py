@@ -1,3 +1,4 @@
+from fastapi import Path
 from pydantic import BaseModel, Field
 from regps.app.api.utils.swagger_examples import login_examples, check_login_examples, upload_examples
 

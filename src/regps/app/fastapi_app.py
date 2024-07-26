@@ -99,8 +99,9 @@ async def upload_route(request: Request, response: Response, aid: str = Path(exa
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/checkupload/{aid}/{dig}")
-async def check_upload_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
+@app.get("/upload/{aid}/{dig}")
+async def check_upload_route(request: Request, response: Response,
+                             aid: str = Path(example=check_upload_examples["request"]["aid"]),
                              dig: str = Path(example=check_upload_examples["request"]["dig"]),
                              signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                              signature_input: str = Header(
@@ -127,16 +128,17 @@ async def check_upload_route(request: Request, response: Response, aid: str = Pa
 
 
 @app.get("/status/{aid}")
-async def status_route(request: Request, response: Response, aid: str = Path(example=check_upload_examples["request"]["aid"]),
-                             signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
-                             signature_input: str = Header(
-                                 example=upload_examples["request"]["headers"]["signature_input"]),
-                             signify_resource: str = Header(
-                                 example=upload_examples["request"]["headers"]["signify_resource"]),
-                             signify_timestamp: str = Header(
-                                 example=upload_examples["request"]["headers"]["signify_timestamp"])
+async def status_route(request: Request, response: Response,
+                       aid: str = Path(example=check_upload_examples["request"]["aid"]),
+                       signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
+                       signature_input: str = Header(
+                           example=upload_examples["request"]["headers"]["signature_input"]),
+                       signify_resource: str = Header(
+                           example=upload_examples["request"]["headers"]["signify_resource"]),
+                       signify_timestamp: str = Header(
+                           example=upload_examples["request"]["headers"]["signify_timestamp"])
 
-                             ):
+                       ):
     """
     Check upload status by aid.
     """
