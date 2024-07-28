@@ -64,7 +64,8 @@ async def check_login_route(response: Response, aid: str = Path(example=check_lo
 
 
 @app.post("/upload/{aid}/{dig}", response_model=UploadResponse)
-async def upload_route(request: Request, response: Response, upload: UploadFile, aid: str = Path(example=upload_examples["request"]["aid"]),
+async def upload_route(request: Request, response: Response, upload: UploadFile = File(...),
+                       aid: str = Path(example=upload_examples["request"]["aid"]),
                        dig: str = Path(example=upload_examples["request"]["dig"]),
                        signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
                        signature_input: str = Header(example=upload_examples["request"]["headers"]["signature_input"]),
