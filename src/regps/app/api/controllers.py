@@ -35,4 +35,4 @@ class APIController:
         verifier_response = self.verifier_adapter.upload_request(aid, dig, contype, report)
         if verifier_response.status_code != 200:
             raise VerifierServiceException(verifier_response.json(), verifier_response.status_code)
-        return verifier_response.json()
+        return verifier_response
