@@ -93,8 +93,8 @@ async def upload_route(request: Request, response: Response,
             logger.info(f"Upload: Invalid signature on report or error was received")
         else:
             logger.info(f"Upload: completed upload for {aid} {dig} with code {resp.status_code}")
-        reports[aid].append(resp)
-        return JSONResponse(status_code=200, content=resp)
+        reports[aid].append(resp.json())
+        return JSONResponse(status_code=200, content=resp.json())
     except VerifierServiceException or VerifySignedHeadersException as e:
         logger.error(f"Upload: Exception: {e}")
         response.status_code = e.status_code
