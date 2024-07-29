@@ -1,8 +1,11 @@
 import os
 from collections import defaultdict
+from typing import Annotated, Union
+
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from regps.app.api.signed_headers_verifier import logger, VerifySignedHeaders
-from fastapi import FastAPI, Header, HTTPException, Request, File, UploadFile, Path, Response
+from fastapi import FastAPI, Header, HTTPException, Request, File, UploadFile, Path, Response, Body, Depends, Form
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from regps.app.api.utils.pydantic_models import LoginRequest, LoginResponse, CheckLoginResponse, CheckUploadResponse, \
@@ -63,8 +66,9 @@ async def check_login_route(response: Response, aid: str = Path(example=check_lo
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# TODO: Add upload form-data param to the required parameters and add it to the DOC
 @app.post("/upload/{aid}/{dig}", response_model=UploadResponse)
-async def upload_route(request: Request, response: Response, upload: UploadFile = File(...),
+async def upload_route(request: Request, response: Response,
                        aid: str = Path(example=upload_examples["request"]["aid"]),
                        dig: str = Path(example=upload_examples["request"]["dig"]),
                        signature: str = Header(example=upload_examples["request"]["headers"]["signature"]),
@@ -79,7 +83,7 @@ async def upload_route(request: Request, response: Response, upload: UploadFile 
     """
     try:
         verify_signed_headers.process_request(request, aid)
-        raw = await upload.read()
+        raw = await request.body()
         logger.info(
             f"Upload: request for {aid} {dig} {raw} {request.headers.get('Content-Type')}"
         )
