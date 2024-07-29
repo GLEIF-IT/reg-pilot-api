@@ -89,7 +89,7 @@ async def upload_route(request: Request, response: Response,
         )
         resp = api_controller.upload(aid, dig, request.headers.get('Content-Type'), raw)
 
-        if response.status_code >= 400:
+        if resp.status_code >= 400:
             logger.info(f"Upload: Invalid signature on report or error was received")
         else:
             logger.info(f"Upload: completed upload for {aid} {dig} with code {resp.status_code}")
