@@ -1,6 +1,34 @@
-from fastapi import Path
+from fastapi import Path, Header
 from pydantic import BaseModel, Field
 from regps.app.api.utils.swagger_examples import login_examples, check_login_examples, upload_examples
+
+
+class SignedHeaders(BaseModel):
+    signature: str = Header(openapi_examples={
+        "default": {
+            "summary": "Default signature",
+            "value": upload_examples["request"]["headers"]["signature"],
+        }
+    })
+    signature_input: str = Header(openapi_examples={
+        "default": {
+            "summary": "Default signature_input",
+            "value": upload_examples["request"]["headers"]["signature_input"],
+        }
+    })
+    signify_resource: str = Header(openapi_examples={
+        "default": {
+            "summary": "Default signify_resource",
+            "value": upload_examples["request"]["headers"]["signify_resource"],
+        }
+    })
+    signify_timestamp: str = Header(openapi_examples={
+        "default": {
+            "summary": "Default signify_timestamp",
+            "value": upload_examples["request"]["headers"]["signify_timestamp"],
+        }
+    })
+
 
 
 class LoginRequest(BaseModel):
