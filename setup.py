@@ -74,10 +74,13 @@ setup(
         'dataclasses_json>=0.5.7',
         'falcon>=3.1.0',
         'gunicorn>=20.1.0',
+        'uvicorn>=0.30.3',
         'http_sfv>=0.9.8',
         'requests>=2.31.0',
         'swagger-ui-py>=22.7.13',
-        'keri>=1.1.11'
+        'keri>=1.1.11',
+        'fastapi>=0.111.1',
+        'requests>=2.32.3'
     ],
     extras_require={
         # eg:

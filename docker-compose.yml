@@ -7,7 +7,7 @@ services:
     image: 2byrds/reg-pilot-api:latest
     ports:
       - 8000:8000
-    # command: gunicorn regps.app.service:app -b 0.0.0.0:8000
+    # command: python src/regps/app/fastapi_app.py
     volumes:
       - ./:/usr/src/app/regps
     environment:
@@ -21,7 +21,7 @@ services:
           - CMD
           - curl
           - -f
-          - http://localhost:8000/api/doc#
+          - http://localhost:8000/docs
       interval: 2s
       timeout: 3s
       retries: 5

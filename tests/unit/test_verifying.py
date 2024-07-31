@@ -1,15 +1,7 @@
-import falcon
-from falcon.testing import create_environ
-from regps.app import service
-from regps.app import tasks
-from keri.core import coring
+import fastapi
+from starlette.datastructures import Headers
+from src.regps.app.api import signed_headers_verifier
 
-import pytest
-
-# @pytest.fixture(autouse=True)
-# def setup():
-#     # Your setup code goes here
-#     print("Setting up")
 
 def test_verify_cig():        
     #AID and SAID should be the same as what is in credential.cesr for the ECR credential
@@ -31,10 +23,9 @@ def test_verify_cig():
         "USER-AGENT": "node",
         "ACCEPT-ENCODING": "gzip, deflate",
     }
-    env = create_environ(headers=headers, method='POST', path='/')
-    req = falcon.Request(env)
-    verCig = service.VerifySignedHeaders()
-    aid, sig, ser = verCig.handle_headers(req)
+    scope = dict(type='http', headers=Headers(headers).raw, method='POST', path='/')
+    req = fastapi.Request(scope)
+    aid, sig, ser = signed_headers_verifier.VerifySignedHeaders.handle_headers(req)
     assert aid == AID
     assert sig == "0BBbeeBw3lVmQWYBpcFH9KmRXZocrqLH_LZL4aqg5W9-NMdXqIYJ-Sao7colSTJOuYllMXFfggoMhkfpTKnvPhUF"
     assert ser == '"@method": POST\n"@path": /\n"signify-resource": EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x\n"signify-timestamp": 2024-05-04T20:20:33.730000+00:00\n"@signature-params: (@method @path signify-resource signify-timestamp);created=1714854033;keyid=BPoZo2b3r--lPBpURvEDyjyDkS65xBEpmpQhHQvrwlBE;alg=ed25519"'
