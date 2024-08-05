@@ -9,4 +9,4 @@ WORKDIR /usr/local/var/server/
 
 RUN pip install -r requirements.txt
 
-ENTRYPOINT [ "gunicorn", "regps.app.service:app", "-b", "0.0.0.0:8000"]
+ENTRYPOINT [ "python","/usr/local/var/server/src/regps/app/fastapi_app.py" ]
