@@ -249,6 +249,23 @@ async def status_route(request: Request, response: Response,
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# TODO: Remove this endpoint when we will have DB. IT's only for tests
+@app.post("/status/{aid}/drop")
+def clear_status_route(aid: str = Path(..., description="AID",
+                                       openapi_examples={
+                                           "default": {
+                                               "summary": "Default AID",
+                                               "value": check_upload_examples["request"]["aid"],
+                                           }
+                                       }), ):
+    """
+        Drop upload status for specified AID. For the test purposes
+    """
+    reports[aid] = []
+    resp = {"status": "success", "aid": aid}
+    return JSONResponse(status_code=202, content=resp)
+
+
 if os.getenv("ENABLE_CORS", "true").lower() in ("true", "1"):
     logger.info("CORS enabled")
     app.add_middleware(
