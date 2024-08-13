@@ -19,7 +19,6 @@ python src/regps/app/fastapi_app.py
 
 #### Running in Docker:
 ```
-docker-compose build --no-cache
 docker-compose down
 docker-compose up
 ```

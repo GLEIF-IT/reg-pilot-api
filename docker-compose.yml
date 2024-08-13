@@ -1,5 +1,4 @@
 services:
-
   reg-pilot-api:
     build:
       context: .
@@ -12,10 +11,10 @@ services:
       - ./:/usr/src/app/regps
     environment:
       - ENABLE_CORS=true
-      - VERIFIER_AUTHORIZATIONS=http://host.docker.internal:7676/authorizations/
-      - VERIFIER_PRESENTATIONS=http://host.docker.internal:7676/presentations/
-      - VERIFIER_REPORTS=http://host.docker.internal:7676/reports/
-      - VERIFIER_REQUESTS=http://host.docker.internal:7676/request/verify/
+      - VERIFIER_AUTHORIZATIONS=http://vlei-verifier:7676/authorizations/
+      - VERIFIER_PRESENTATIONS=http://vlei-verifier:7676/presentations/
+      - VERIFIER_REPORTS=http://vlei-verifier:7676/reports/
+      - VERIFIER_REQUESTS=http://vlei-verifier:7676/request/verify/
     healthcheck:
       test:
           - CMD
@@ -29,28 +28,28 @@ services:
     # depends_on:
       # - verifier
 
-  # vlei-verifier:
-  #   build:
-  #     context: .
-  #     dockerfile: ./images/verifier.dockerfile
-  #   image: 2byrds/vlei-verifier:latest
-  #   container_name: vlei-verifier
-  #   hostname: vlei-verifier
-  #   # depends_on:
-  #   #   - vlei
-  #   #   - witnesses
-  #   ports:
-  #     - 7676:7676
-  #   healthcheck:
-  #     test:
-  #         - CMD
-  #         - curl
-  #         - -f
-  #         - http://localhost:7676/health
-  #     interval: 2s
-  #     timeout: 3s
-  #     retries: 5
-  #     start_period: 2s
+  vlei-verifier:
+     build:
+       context: .
+       dockerfile: ./images/verifier.dockerfile
+     image: 2byrds/vlei-verifier:latest
+     container_name: vlei-verifier
+     hostname: vlei-verifier
+     # depends_on:
+     #   - vlei
+     #   - witnesses
+     ports:
+       - 7676:7676
+     healthcheck:
+       test:
+           - CMD
+           - curl
+           - -f
+           - http://localhost:7676/health
+       interval: 2s
+       timeout: 3s
+       retries: 5
+       start_period: 2s
 
   deps:
     image: alpine
