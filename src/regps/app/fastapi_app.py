@@ -153,7 +153,7 @@ async def check_upload_route(request: Request, response: Response,
                              dig: str = Path(..., description="DIG",
                                              openapi_examples={
                                                  "default": {
-                                                     "summary": "Default DID",
+                                                     "summary": "The file digest",
                                                      "value": check_upload_examples["request"]["dig"],
                                                  }
                                              }),
