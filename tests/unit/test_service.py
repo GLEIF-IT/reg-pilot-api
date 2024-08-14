@@ -44,9 +44,9 @@ def test_ends():
     assert result.status_code == 200
     assert result.json() == "Pong"
 
-    with open(f"../../data/credential.cesr", "r") as cfile:
+    with open("./data/credential.cesr", "r") as cfile:
         vlei_ecr = cfile.read()
-        headers["Content-Type"] = "application/json+cesr"
+        headers["Content-Type"] = "application/json"
         result = client.post(
             f"/login", json={"said": SAID, "vlei": vlei_ecr}, headers=headers
         )
@@ -55,7 +55,7 @@ def test_ends():
     result = client.get(f"/checklogin/{AID}", headers=headers)
     assert result.status_code == 200
 
-    result = client.get(f"/checkupload/{AID}/{DIG}", headers=headers)
+    result = client.get(f"/upload/{AID}/{DIG}", headers=headers)
     assert (
             result.status_code == 401
     )  # fail because this signature should not verify
