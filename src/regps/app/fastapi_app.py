@@ -48,7 +48,7 @@ async def login(response: Response, data: LoginRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/checklogin/{aid}", response_model=CheckLoginResponse)
+@app.get("/login/status/{aid}", response_model=CheckLoginResponse)
 async def check_login_route(response: Response,
                             aid: str = Path(..., description="AID",
                                             openapi_examples={
@@ -74,7 +74,7 @@ async def check_login_route(response: Response,
 
 
 # TODO: Add upload form-data param to the required parameters and add it to the DOC
-@app.post("/upload/{aid}/{dig}", response_model=UploadResponse)
+@app.post("/report/upload/{aid}/{dig}", response_model=UploadResponse)
 async def upload_route(request: Request, response: Response,
                        aid: str = Path(..., description="AID",
                                        openapi_examples={
@@ -141,7 +141,7 @@ async def upload_route(request: Request, response: Response,
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/upload/{aid}/{dig}")
+@app.get("/report/status/{aid}/{dig}")
 async def check_upload_route(request: Request, response: Response,
                              aid: str = Path(..., description="AID",
                                              openapi_examples={
