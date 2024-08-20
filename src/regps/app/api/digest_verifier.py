@@ -1,0 +1,15 @@
+from hashlib import sha256
+from src.regps.app.api.exceptions import DigestVerificationFailedException
+
+
+def get_non_prefixed_digest(dig):
+    prefix, digest = dig.split("_", 1)
+    if not digest:
+        raise DigestVerificationFailedException(f"Digest ({dig}) must start with prefix", 400)
+    return digest
+
+
+def verify_digest(file: bytes, digest: str):
+    digest = get_non_prefixed_digest(digest)
+    actual_digest = sha256(file).hexdigest()
+    return actual_digest == digest

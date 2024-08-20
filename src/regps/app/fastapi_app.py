@@ -121,10 +121,13 @@ async def upload_route(request: Request, response: Response,
     try:
         verify_signed_headers.process_request(request, aid)
         raw = await request.body()
+        form = await request.form()
+        upload = form.get("upload")
+        report = await upload.read()
         logger.info(
             f"Upload: request for {aid} {dig} {raw} {request.headers.get('Content-Type')}"
         )
-        resp = api_controller.upload(aid, dig, request.headers.get('Content-Type'), raw)
+        resp = api_controller.upload(aid, dig, report, request.headers.get('Content-Type'), raw)
 
         if resp.status_code >= 400:
             logger.info(f"Upload: Invalid signature on report or error was received")
