@@ -80,7 +80,8 @@ setup(
         'swagger-ui-py>=22.7.13',
         'keri>=1.1.11',
         'fastapi>=0.111.1',
-        'requests>=2.32.3'
+        'requests>=2.32.3',
+        'python-multipart'
     ],
     extras_require={
         # eg:
