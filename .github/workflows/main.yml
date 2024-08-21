@@ -34,7 +34,9 @@ jobs:
           pip install flake8 pytest hio httpx
           pip install -r requirements.txt
       - name: Start dependencies
-        run: sudo docker compose up deps -d --build
+        run: |
+          sudo docker compose up -d vlei-verifier
+          sudo docker compose up -d --build reg-pilot-api
       - name: Run unit tests
         run: pytest
 
