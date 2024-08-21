@@ -10,7 +10,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from regps.app.api.utils.pydantic_models import LoginRequest, LoginResponse, CheckLoginResponse, CheckUploadResponse, \
     UploadResponse
-from regps.app.api.exceptions import VerifierServiceException, VerifySignedHeadersException
+from regps.app.api.exceptions import VerifierServiceException, VerifySignedHeadersException, \
+    DigestVerificationFailedException
 from regps.app.api.controllers import APIController
 from regps.app.api.utils.swagger_examples import login_examples, check_login_examples, upload_examples, \
     check_upload_examples
@@ -135,12 +136,12 @@ async def upload_route(request: Request, response: Response,
             logger.info(f"Upload: completed upload for {aid} {dig} with code {resp.status_code}")
         reports[aid].append(resp.json())
         return JSONResponse(status_code=200, content=resp.json())
-    except VerifierServiceException or VerifySignedHeadersException as e:
+    except HTTPException as e:
         logger.error(f"Upload: Exception: {e}")
         response.status_code = e.status_code
         return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
-        logger.error(f"Upload: Exception: {e}")
+        logger.error(f"Upload: Unknown Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
