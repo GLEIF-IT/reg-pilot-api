@@ -2,6 +2,7 @@ from hashlib import sha256
 from regps.app.api.exceptions import DigestVerificationFailedException
 
 
+
 def get_non_prefixed_digest(dig):
     try:
         prefix, digest = dig.split("_", 1)
