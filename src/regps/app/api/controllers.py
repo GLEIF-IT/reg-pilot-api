@@ -1,6 +1,7 @@
 import requests
 from regps.app.adapters.verifier_service_adapter import VerifierServiceAdapter
-from regps.app.api.exceptions import VerifierServiceException
+from regps.app.api.exceptions import VerifierServiceException, DigestVerificationFailedException
+from regps.app.api.digest_verifier import verify_digest
 
 
 class APIController:
@@ -31,8 +32,10 @@ class APIController:
             raise VerifierServiceException(verifier_response.json(), verifier_response.status_code)
         return verifier_response.json()
 
-    def upload(self, aid: str, dig: str, contype: str, report):
-        verifier_response = self.verifier_adapter.upload_request(aid, dig, contype, report)
+    def upload(self, aid: str, dig: str, report: bytes, contype: str, raw):
+        if not verify_digest(report, dig):
+            raise DigestVerificationFailedException("Report digest verification failed", 400)
+        verifier_response = self.verifier_adapter.upload_request(aid, dig, contype, raw)
         if verifier_response.status_code != 200:
             raise VerifierServiceException(verifier_response.json(), verifier_response.status_code)
         return verifier_response

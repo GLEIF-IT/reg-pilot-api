@@ -10,7 +10,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from regps.app.api.utils.pydantic_models import LoginRequest, LoginResponse, CheckLoginResponse, CheckUploadResponse, \
     UploadResponse
-from regps.app.api.exceptions import VerifierServiceException, VerifySignedHeadersException
+from regps.app.api.exceptions import VerifierServiceException, VerifySignedHeadersException, \
+    DigestVerificationFailedException
 from regps.app.api.controllers import APIController
 from regps.app.api.utils.swagger_examples import login_examples, check_login_examples, upload_examples, \
     check_upload_examples
@@ -121,10 +122,13 @@ async def upload_route(request: Request, response: Response,
     try:
         verify_signed_headers.process_request(request, aid)
         raw = await request.body()
+        form = await request.form()
+        upload = form.get("upload")
+        report = await upload.read()
         logger.info(
             f"Upload: request for {aid} {dig} {raw} {request.headers.get('Content-Type')}"
         )
-        resp = api_controller.upload(aid, dig, request.headers.get('Content-Type'), raw)
+        resp = api_controller.upload(aid, dig, report, request.headers.get('Content-Type'), raw)
 
         if resp.status_code >= 400:
             logger.info(f"Upload: Invalid signature on report or error was received")
@@ -132,12 +136,12 @@ async def upload_route(request: Request, response: Response,
             logger.info(f"Upload: completed upload for {aid} {dig} with code {resp.status_code}")
         reports[aid].append(resp.json())
         return JSONResponse(status_code=200, content=resp.json())
-    except VerifierServiceException or VerifySignedHeadersException as e:
+    except HTTPException as e:
         logger.error(f"Upload: Exception: {e}")
         response.status_code = e.status_code
         return JSONResponse(content=e.detail, status_code=e.status_code)
     except Exception as e:
-        logger.error(f"Upload: Exception: {e}")
+        logger.error(f"Upload: Unknown Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -153,7 +157,7 @@ async def check_upload_route(request: Request, response: Response,
                              dig: str = Path(..., description="DIG",
                                              openapi_examples={
                                                  "default": {
-                                                     "summary": "Default AID",
+                                                     "summary": "The file digest",
                                                      "value": check_upload_examples["request"]["dig"],
                                                  }
                                              }),
@@ -247,6 +251,23 @@ async def status_route(request: Request, response: Response,
     except Exception as e:
         logger.error(f"Status: Exception: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# TODO: Remove this endpoint when we will have DB. IT's only for tests
+@app.post("/status/{aid}/drop")
+def clear_status_route(aid: str = Path(..., description="AID",
+                                       openapi_examples={
+                                           "default": {
+                                               "summary": "Default AID",
+                                               "value": check_upload_examples["request"]["aid"],
+                                           }
+                                       }), ):
+    """
+        Drop upload status for specified AID. For the test purposes
+    """
+    reports[aid] = []
+    resp = {"status": "success", "aid": aid}
+    return JSONResponse(status_code=202, content=resp)
 
 
 if os.getenv("ENABLE_CORS", "true").lower() in ("true", "1"):
