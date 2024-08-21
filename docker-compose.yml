@@ -29,9 +29,6 @@ services:
 #       - vlei-verifier
 
   vlei-verifier:
-     build:
-       context: .
-       dockerfile: ./images/verifier.dockerfile
      image: 2byrds/vlei-verifier:latest
      container_name: vlei-verifier
      hostname: vlei-verifier
