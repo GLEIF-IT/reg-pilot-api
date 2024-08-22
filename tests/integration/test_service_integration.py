@@ -68,15 +68,15 @@ def test_ends_integration(start_gunicorn):
     app = fastapi_app.app
     client = TestClient(app)
 
-    result = client.get(f"/ping", headers=headers)
+    result = client.get("/ping", headers=headers)
     assert result.status_code == 200
     assert result.text == "Pong"
 
-    with open(f"../../data/credential.cesr", "r") as cfile:
+    with open("../../data/credential.cesr", "r") as cfile:
         vlei_ecr = cfile.read()
         headers["Content-Type"] = "application/json+cesr"
         result = client.post(
-            f"/login", json={"said": SAID, "vlei": vlei_ecr}, headers=headers
+            "/login", json={"said": SAID, "vlei": vlei_ecr}, headers=headers
         )
         assert result.status_code == 202
 

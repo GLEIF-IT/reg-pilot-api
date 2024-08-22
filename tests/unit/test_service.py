@@ -40,7 +40,7 @@ def test_ends():
     app = fastapi_app.app
     client = TestClient(app)
 
-    result = client.get(f"/ping", headers=headers)
+    result = client.get("/ping", headers=headers)
     assert result.status_code == 200
     assert result.json() == "Pong"
 
@@ -48,7 +48,7 @@ def test_ends():
         vlei_ecr = cfile.read()
         headers["Content-Type"] = "application/json"
         result = client.post(
-            f"/login", json={"said": SAID, "vlei": vlei_ecr}, headers=headers
+            "/login", json={"said": SAID, "vlei": vlei_ecr}, headers=headers
         )
         assert result.status_code == 202
 
@@ -56,6 +56,4 @@ def test_ends():
     assert result.status_code == 200
 
     result = client.get(f"/upload/{AID}/{DIG}", headers=headers)
-    assert (
-            result.status_code == 401
-    )  # fail because this signature should not verify
+    assert result.status_code == 401  # fail because this signature should not verify

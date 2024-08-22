@@ -31,7 +31,11 @@ class VerifySignedHeaders:
                 return res
             else:
                 raise VerifySignedHeadersException(
-                    json.dumps({"msg": f"Header AID {aid} does not match request {raid}"}), 401)
+                    json.dumps(
+                        {"msg": f"Header AID {aid} does not match request {raid}"}
+                    ),
+                    401,
+                )
         except VerifySignedHeadersException as e:
             raise e
 
@@ -40,19 +44,27 @@ class VerifySignedHeaders:
         logger.info(f"processing header req {req}")
 
         headers = req.headers
-        if "SIGNATURE-INPUT" not in headers or "SIGNATURE" not in headers or "SIGNIFY-RESOURCE" not in headers or "SIGNIFY-TIMESTAMP" not in headers:
-            raise VerifySignedHeadersException(json.dumps({"msg": f"Incorrect Headers"}), 401)
+        if (
+            "SIGNATURE-INPUT" not in headers
+            or "SIGNATURE" not in headers
+            or "SIGNIFY-RESOURCE" not in headers
+            or "SIGNIFY-TIMESTAMP" not in headers
+        ):
+            raise VerifySignedHeadersException(
+                json.dumps({"msg": "Incorrect Headers"}), 401
+            )
 
         siginput = headers["SIGNATURE-INPUT"]
         signature = headers["SIGNATURE"]
         resource = headers["SIGNIFY-RESOURCE"]
-        timestamp = headers["SIGNIFY-TIMESTAMP"]
 
         inputs = ending.desiginput(siginput.encode("utf-8"))
         inputs = [i for i in inputs if i.name == "signify"]
 
         if not inputs:
-            raise VerifySignedHeadersException(json.dumps({"msg": f"Incorrect Headers"}), 401)
+            raise VerifySignedHeadersException(
+                json.dumps({"msg": "Incorrect Headers"}), 401
+            )
 
         for inputage in inputs:
             items = []

@@ -8,6 +8,14 @@ on:
       - "main"
   workflow_dispatch:
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v2
+      - uses: chartboost/ruff-action@v1
+        with:
+          args: check .
   test:
     name: Run Tests${{ matrix.keria-version }}
     runs-on: ${{ matrix.os }}
@@ -31,13 +39,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest hio httpx
+          pip install flake8 pytest pytest-cov hio httpx
           pip install -r requirements.txt
       - name: Start dependencies
         run: |
           sudo docker compose up -d vlei-verifier
           sudo docker compose up -d --build reg-pilot-api
-      - name: Run unit tests
-        run: pytest
+      - name: Run unit tests wit coverage
+        run: pytest --cov=./src/regps/app --cov-report=term-missing --cov-fail-under=50
 
 
