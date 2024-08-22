@@ -18,6 +18,7 @@ Best practices for setup.py and requirements.txt
 https://caremad.io/posts/2013/07/setup-vs-requirement/
 """
 
+
 from glob import glob
 from os.path import basename
 from os.path import splitext
@@ -80,6 +81,7 @@ setup(
         "keri>=1.1.11",
         "fastapi>=0.111.1",
         "requests>=2.32.3",
+        "python-multipart"
     ],
     extras_require={
         # eg:
