@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: GLEIF-it/reg-pilot-api
+          images: gleif/reg-pilot-api
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -39,6 +39,5 @@ jobs:
           file: images/reg-pilot-api.dockerfile
           push: true
           tags: |
-            WebOfTrust/reg-poc-api:${{ github.event.inputs.version }}
-            WebOfTrust/reg-poc-api:latest
+            gleif/reg-poc-api:${{ github.event.inputs.version }}
           labels: ${{ github.event.inputs.version }}
