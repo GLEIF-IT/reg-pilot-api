@@ -39,5 +39,5 @@ jobs:
           file: images/reg-pilot-api.dockerfile
           push: true
           tags: |
-            gleif/reg-poc-api:${{ github.event.inputs.version }}
+            gleif/reg-pilot-api:${{ github.event.inputs.version }}
           labels: ${{ github.event.inputs.version }}
