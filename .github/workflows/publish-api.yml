@@ -36,20 +36,20 @@ jobs:
       - name: Determine Docker tag
         id: docker_tag
         run: |
-            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" && "${{ github.event.pull_request.merged }}" == "true" ]]; then
-              echo "::set-output name=tag::dev"
-            elif [[ -n "${{ github.event.inputs.version }}" ]]; then
-              echo "::set-output name=tag::${{ github.event.inputs.version }}"
-            else
-              echo "::set-output name=tag::dev"
-            fi
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" && "${{ github.event.pull_request.merged }}" == "true" ]]; then
+            echo "::set-output name=tag::dev"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            echo "::set-output name=tag::${{ github.event.inputs.version }}"
+          else
+            echo "::set-output name=tag::dev"
+          fi
   
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
-            context: .
-            file: images/reg-pilot-api.dockerfile
-            push: true
-            tags: |
-              gleif/reg-pilot-api:${{ steps.docker_tag.outputs.tag }}
-            labels: ${{ steps.docker_tag.outputs.tag }}
+          context: .
+          file: images/reg-pilot-api.dockerfile
+          push: true
+          tags: |
+            gleif/reg-pilot-api:${{ steps.docker_tag.outputs.tag }}
+          labels: ${{ steps.docker_tag.outputs.tag }}
