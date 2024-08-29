@@ -1,7 +1,4 @@
 import os
-from collections import defaultdict
-
-
 from regps.app.api.signed_headers_verifier import logger, VerifySignedHeaders
 from fastapi import (
     FastAPI,
@@ -23,6 +20,7 @@ from regps.app.api.exceptions import (
     VerifierServiceException,
 )
 from regps.app.api.controllers import APIController
+from regps.app.api.utils.reports_db import ReportsDB
 from regps.app.api.utils.swagger_examples import (
     check_login_examples,
     upload_examples,
@@ -37,8 +35,7 @@ app = FastAPI(
 
 api_controller = APIController()
 verify_signed_headers = VerifySignedHeaders(api_controller)
-reports = defaultdict(list)
-
+reports_db = ReportsDB()
 
 @app.get("/ping")
 async def ping():
@@ -56,7 +53,10 @@ async def login(response: Response, data: LoginRequest):
     try:
         logger.info(f"Login: sending login cred {str(data)[:50]}...")
         resp = api_controller.login(data.said, data.vlei)
-        return JSONResponse(status_code=200, content=resp)
+        lei = resp.get("lei")
+        aid = resp.get("aid")
+        reports_db.register_aid(aid, lei)
+        return JSONResponse(status_code=202, content=resp)
     except VerifierServiceException as e:
         logger.error(f"Login: Exception: {e}")
         response.status_code = e.status_code
@@ -176,7 +176,7 @@ async def upload_route(
             logger.info(
                 f"Upload: completed upload for {aid} {dig} with code {resp.status_code}"
             )
-        reports[aid].append(resp.json())
+        reports_db.add_report(aid, dig, resp.json())
         return JSONResponse(status_code=200, content=resp.json())
     except HTTPException as e:
         logger.error(f"Upload: Exception: {e}")
@@ -249,9 +249,15 @@ async def check_upload_route(
     """
     try:
         verify_signed_headers.process_request(request, aid)
+        if not reports_db.authorized_to_check_status(aid, dig):
+            raise HTTPException(status_code=401, detail=f"AID {aid} is not authorized to check status for digest {dig}")
         resp = api_controller.check_upload(aid, dig)
         return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
+        logger.error(f"CheckUpload: Exception: {e}")
+        response.status_code = e.status_code
+        return JSONResponse(content=e.detail, status_code=e.status_code)
+    except HTTPException as e:
         logger.error(f"CheckUpload: Exception: {e}")
         response.status_code = e.status_code
         return JSONResponse(content=e.detail, status_code=e.status_code)
@@ -312,7 +318,70 @@ async def status_route(
     """
     try:
         verify_signed_headers.process_request(request, aid)
-        resp = reports.get(aid, [])
+        resp = reports_db.get_reports_for_aid(aid)
+        return JSONResponse(status_code=202, content=resp)
+    except HTTPException as e:
+        logger.error(f"Status: Exception: {e}")
+        response.status_code = e.status_code
+        return JSONResponse(content=e.detail, status_code=e.status_code)
+    except Exception as e:
+        logger.error(f"Status: Exception: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/report/status/lei/{aid}")
+async def status_for_lei_route(
+    request: Request,
+    response: Response,
+    aid: str = Path(
+        ...,
+        description="AID",
+        openapi_examples={
+            "default": {
+                "summary": "Default AID",
+                "value": check_upload_examples["request"]["aid"],
+            }
+        },
+    ),
+    signature: str = Header(
+        openapi_examples={
+            "default": {
+                "summary": "Default signature",
+                "value": upload_examples["request"]["headers"]["signature"],
+            }
+        }
+    ),
+    signature_input: str = Header(
+        openapi_examples={
+            "default": {
+                "summary": "Default signature_input",
+                "value": upload_examples["request"]["headers"]["signature_input"],
+            }
+        }
+    ),
+    signify_resource: str = Header(
+        openapi_examples={
+            "default": {
+                "summary": "Default signify_resource",
+                "value": upload_examples["request"]["headers"]["signify_resource"],
+            }
+        }
+    ),
+    signify_timestamp: str = Header(
+        openapi_examples={
+            "default": {
+                "summary": "Default signify_timestamp",
+                "value": upload_examples["request"]["headers"]["signify_timestamp"],
+            }
+        }
+    ),
+):
+    """
+    Check upload status by aid.
+    """
+    try:
+        verify_signed_headers.process_request(request, aid)
+        resp = reports_db.get_reports_for_lei(aid)
         return JSONResponse(status_code=202, content=resp)
     except VerifierServiceException as e:
         logger.error(f"Status: Exception: {e}")
@@ -326,6 +395,7 @@ async def status_route(
 # TODO: Remove this endpoint when we will have DB. IT's only for tests
 @app.post("/status/{aid}/drop")
 def clear_status_route(
+    request: Request,
     aid: str = Path(
         ...,
         description="AID",
@@ -340,7 +410,8 @@ def clear_status_route(
     """
     Drop upload status for specified AID. For the test purposes
     """
-    reports[aid] = []
+    verify_signed_headers.process_request(request, aid)
+    reports_db.drop_status(aid)
     resp = {"status": "success", "aid": aid}
     return JSONResponse(status_code=202, content=resp)
 

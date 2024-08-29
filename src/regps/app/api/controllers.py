@@ -23,7 +23,7 @@ class APIController:
 
     def login(self, said: str, vlei: str):
         verifier_response = self.verifier_adapter.verify_vlei_request(said, vlei)
-        if verifier_response.status_code != 200:
+        if verifier_response.status_code != 202:
             raise VerifierServiceException(
                 verifier_response.json(), verifier_response.status_code
             )
