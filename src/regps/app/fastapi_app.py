@@ -362,7 +362,7 @@ async def status_for_lei_route(
     signify_resource: str = Header(
         openapi_examples={
             "default": {
-                "summary": "Default signify_resource",
+                "summary": "Default signify_resource for signed headers.",
                 "value": upload_examples["request"]["headers"]["signify_resource"],
             }
         }
