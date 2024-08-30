@@ -370,7 +370,7 @@ async def status_for_lei_route(
     signify_timestamp: str = Header(
         openapi_examples={
             "default": {
-                "summary": "Default signify_timestamp",
+                "summary": "Default signify_timestamp for signed headers.",
                 "value": upload_examples["request"]["headers"]["signify_timestamp"],
             }
         }
