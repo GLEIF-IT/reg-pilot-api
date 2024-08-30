@@ -338,7 +338,7 @@ async def status_for_lei_route(
         description="AID",
         openapi_examples={
             "default": {
-                "summary": "Default AID",
+                "summary": "Default AID. Must have logged into the verifier with a role credential specifying the LEI.",
                 "value": check_upload_examples["request"]["aid"],
             }
         },
