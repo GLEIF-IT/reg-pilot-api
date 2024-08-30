@@ -354,7 +354,7 @@ async def status_for_lei_route(
     signature_input: str = Header(
         openapi_examples={
             "default": {
-                "summary": "Default signature_input",
+                "summary": "Default signature_input for signed headers.",
                 "value": upload_examples["request"]["headers"]["signature_input"],
             }
         }
