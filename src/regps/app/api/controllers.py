@@ -51,8 +51,8 @@ class APIController:
                 "Report digest verification failed", 400
             )
         verifier_response = self.verifier_adapter.upload_request(aid, dig, contype, raw)
-        if verifier_response.status_code != 200:
-            raise VerifierServiceException(
-                verifier_response.json(), verifier_response.status_code
-            )
+        # if verifier_response.status_code != 200:
+        #     raise VerifierServiceException(
+        #         verifier_response.json(), verifier_response.status_code
+        #     )
         return verifier_response

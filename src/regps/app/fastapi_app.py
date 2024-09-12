@@ -171,13 +171,13 @@ async def upload_route(
         )
 
         if resp.status_code >= 400:
-            logger.info("Upload: Invalid signature on report or error was received")
+            logger.info(f"Upload failed {resp.json()}")
         else:
             logger.info(
                 f"Upload: completed upload for {aid} {dig} with code {resp.status_code}"
             )
-        reports_db.add_report(aid, dig, resp.json())
-        return JSONResponse(status_code=200, content=resp.json())
+            reports_db.add_report(aid, dig, resp.json())
+        return JSONResponse(status_code=resp.status_code, content=resp.json())
     except HTTPException as e:
         logger.error(f"Upload: Exception: {e}")
         response.status_code = e.status_code
