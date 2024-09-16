@@ -11,7 +11,7 @@ from regps.app.api.digest_verifier import verify_digest
 def test_digest_verification():
     BASE_STR = "fefUBIUhdo9032bfHf0UNONF0kubni9HnF22L0KD2".encode()
     dig = sha256(BASE_STR).hexdigest()
-    dig = f"sha256_{dig}"
+    dig = f"sha256-{dig}"
     assert verify_digest(BASE_STR, dig) is True
 
 
@@ -19,7 +19,7 @@ def test_digest_verification_fail():
     BASE_STR = "fefUBIUhdo9032bfHf0UNONF0kubni9HnF22L0KD2".encode()
     WRONG_BASE_STR = "fefUBIUhdo9032bfHf0UNONF0kubni9HnF22L0KDT".encode()
     dig = sha256(BASE_STR).hexdigest()
-    dig = f"sha256_{dig}"
+    dig = f"sha256-{dig}"
     assert verify_digest(WRONG_BASE_STR, dig) is False
 
 

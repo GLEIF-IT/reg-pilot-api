@@ -4,7 +4,7 @@ from regps.app.api.exceptions import DigestVerificationFailedException
 
 def get_non_prefixed_digest(dig):
     try:
-        prefix, digest = dig.split("_", 1)
+        prefix, digest = dig.split("-", 1)
     except ValueError:
         raise DigestVerificationFailedException(
             f"Digest ({dig}) must start with prefix", 400
