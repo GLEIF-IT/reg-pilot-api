@@ -54,6 +54,7 @@ def test_ends():
 
     result = client.get(f"/checklogin/{AID}", headers=headers)
     assert result.status_code == 200
+    assert result.text == '{"aid":"EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x","said":"EElnd1DKvcDzzh7u7jBjsg2X9WgdQQuhgiu80i2VR-gk","lei":"875500ELOZEL05BVXV37","msg":"AID EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x w/ lei 875500ELOZEL05BVXV37 presented valid credential"}'
 
     result = client.get(f"/upload/{AID}/{DIG}", headers=headers)
     assert result.status_code == 401  # fail because this signature should not verify

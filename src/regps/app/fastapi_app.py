@@ -53,9 +53,6 @@ async def login(response: Response, data: LoginRequest):
     try:
         logger.info(f"Login: sending login cred {str(data)[:50]}...")
         resp = api_controller.login(data.said, data.vlei)
-        lei = resp.get("lei")
-        aid = resp.get("aid")
-        reports_db.register_aid(aid, lei)
         return JSONResponse(status_code=202, content=resp)
     except VerifierServiceException as e:
         logger.error(f"Login: Exception: {e}")
@@ -86,6 +83,9 @@ async def check_login_route(
     try:
         logger.info(f"CheckLogin: sending aid {aid}")
         resp = api_controller.check_login(aid)
+        lei = resp.get("lei")
+        aid = resp.get("aid")
+        reports_db.register_aid(aid, lei)
         return JSONResponse(status_code=200, content=resp)
     except VerifierServiceException as e:
         logger.error(f"CheckLogin: Exception: {e}")
