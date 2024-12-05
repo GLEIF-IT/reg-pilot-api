@@ -28,7 +28,7 @@ The web app (UI front-end) uses Signify/KERIA for selecting identifiers and cred
 See: [reg-pilot-webapp](https://github.com/GLEIF-IT/reg-pilot-webapp)
 
 ### Verifier
-The verifier uses [keripy](https://github.com/WebOfTRust/keripy) for verifying the requets:
+The verifier uses [keripy](https://github.com/WebOfTRust/keripy) for verifying the requests:
 See: [vlei-verifier](https://github.com/GLEIF-IT/vlei-verifier)
 
 ### Additional service
