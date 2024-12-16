@@ -133,7 +133,7 @@ async def add_root_of_trust(
     """
     try:
         logger.info(f"AddRootOfTrust: sending add root of trust request {str(data)[:50]}...")
-        resp = api_controller.add_root_of_trust(data.aid, data.vlei)
+        resp = api_controller.add_root_of_trust(data.aid, data.vlei, data.oobi)
         return JSONResponse(status_code=202, content=resp)
     except VerifierServiceException as e:
         logger.error(f"AddRootOfTrust: Exception: {e}")

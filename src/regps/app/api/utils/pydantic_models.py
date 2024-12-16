@@ -53,6 +53,7 @@ class PresentRevocationRequest(BaseModel):
 class AddRootOfTrustRequest(BaseModel):
     aid: str = Field(examples=add_rot_examples["request"]["aid"])
     vlei: str = Field(examples=add_rot_examples["request"]["vlei"])
+    oobi: str = Field(examples=add_rot_examples["request"]["oobi"])
 
 class LoginResponse(BaseModel):
     aid: str = Field(examples=login_examples["response"]["aid"])
