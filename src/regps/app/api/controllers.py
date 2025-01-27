@@ -1,6 +1,5 @@
 import os
 
-import requests
 from regps.app.adapters.filer_service_adapter import FilerServiceAdapter
 from regps.app.api.exceptions import (
     VerifierServiceException,
