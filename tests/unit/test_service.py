@@ -52,7 +52,7 @@ def test_ends():
         )
         assert result.status_code == 202
     result = client.get(f"/checklogin/{AID}", headers=headers)
-    assert result.status_code == 401 # 401 because the QVI delegator is not Root Of Truet
+    assert result.status_code == 401 # 401 because the QVI delegator is not Root Of Trust
     # assert result.text == '{"aid":"EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x","said":"EElnd1DKvcDzzh7u7jBjsg2X9WgdQQuhgiu80i2VR-gk","lei":"875500ELOZEL05BVXV37","msg":"AID EP4kdoVrDh4Mpzh2QbocUYIv4IjLZLDU367UO0b40f6x w/ lei 875500ELOZEL05BVXV37 has valid login account"}'
 
     result = client.get(f"/upload/{AID}/{DIG}", headers=headers)
