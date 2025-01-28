@@ -28,7 +28,7 @@ from setuptools import setup
 
 setup(
     name="reg-pilot-api",
-    version="0.0.3",  # also change in src/regps/__init__.py
+    version="0.1.0",  # also change in src/regps/__init__.py
     license="Apache Software License 2.0",
     description="RegPS: Regulation Portal Service API.",
     long_description="RegPS: A Regulation Portal Service to orchestate web app, vLEI validation, etc.",
@@ -81,7 +81,8 @@ setup(
         "keri==1.2.0-dev12",
         "fastapi>=0.111.1",
         "requests>=2.32.3",
-        "python-multipart"
+        "python-multipart",
+        'vlei-verifier-client==0.1.0'
     ],
     extras_require={
         # eg:
