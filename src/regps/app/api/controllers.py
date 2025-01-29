@@ -19,7 +19,7 @@ class APIController:
         verifier_response: VerifierResponse = self.verifier_client.check_login(aid)
         if verifier_response.code != 200:
             raise VerifierServiceException(
-                verifier_response.message, verifier_response.code
+                verifier_response.body, verifier_response.code
             )
         return verifier_response.body
 
@@ -27,7 +27,7 @@ class APIController:
         verifier_response: VerifierResponse = self.verifier_client.login(said, vlei)
         if verifier_response.code != 202:
             raise VerifierServiceException(
-                verifier_response.message, verifier_response.code
+                verifier_response.body, verifier_response.code
             )
         return verifier_response.body
 
@@ -35,7 +35,7 @@ class APIController:
         verifier_response: VerifierResponse = self.verifier_client.add_root_of_trust(aid, vlei, oobi)
         if verifier_response.code != 202:
             raise VerifierServiceException(
-                verifier_response.message, verifier_response.code
+                verifier_response.body, verifier_response.code
             )
         return verifier_response.body
 
@@ -43,7 +43,7 @@ class APIController:
         verifier_response: VerifierResponse = self.verifier_client.verify_signed_headers(aid, cig, ser)
         if verifier_response.code != 202:
             raise VerifierServiceException(
-                verifier_response.message, verifier_response.code
+                verifier_response.body, verifier_response.code
             )
         return verifier_response.body
 
